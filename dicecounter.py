@@ -12,9 +12,11 @@ filename = [ "d1.jpg","d2.jpg","d3.jpg","d4.jpg","d5.jpg",
             "d31.jpg"
             ]
 
-filename1 = ["d1.jpg"]
+filename1 = ["d17.jpg"]
 
-for fi,file in enumerate(filename):
+#--------------PRZYGOTOWANIE-PLIKU------------------
+
+for fi,file in enumerate(filename1):
 
     image = cv2.imread(file)
 
@@ -50,9 +52,13 @@ for fi,file in enumerate(filename):
     sd = ShapeDetector()
     kostki = []
     oczka = []
+    shapek = []
+    shapec = []
     r = 0
     p = 0 
-    #----------KOSTKI-------------------
+
+#---------------KOSTKI-------------------
+
     for i,c in enumerate(cnts):
         #odrzucanie zbyt małych i zbyt dużych konturów
         if((cv2.arcLength(c,True)<100 or cv2.arcLength(c,True)>4000) ):
@@ -70,14 +76,10 @@ for fi,file in enumerate(filename):
             if(shape == "Square"):
                 #print("kostka")
                 kostki.append(zwrot[1])
-                shape = "Square"+str(r)
+                shapek.append("Square"+str(r))
                 r = r+1
                 
-                c = c.astype("float")
-                c = c.astype("int")
-                cv2.drawContours(image, [c], -1, (0, 0, 255), 4)
-                cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 0, 0), 2)
+  
 
             if(shape == "niet"):
                 continue
@@ -103,29 +105,20 @@ for fi,file in enumerate(filename):
             if(shape == "circle"):
                 #print("oczka")
                 oczka.append(zwrot[1])
-                shape = "Circle"+str(p)
+                shapec.append("Circle"+str(p))
                 p = p+1
-
-                c = c.astype("float")
-                c = c.astype("int")
-                cv2.drawContours(image, [c], -1, (0, 0, 255), 4)
-                cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 0, 0), 2)
 
             if(shape == "niet"):
                 continue
-
-    #print("OK")
-    #----ZAPIS------
-    name = "./apolygs/polyg" + str(fi)+".jpg"
-    #name = "poly.jpg" + str(fi)+".jpg"
-    cv2.imwrite(name,image)
-    #print("OK")
-
+#------------LICZENIE----------------------
     wynik = []
+    print(len(kostki))
+    print(len(shapek))
 
     for i,kost in enumerate(kostki):
-        
+     
+               #print("tak")
+
         owk = [] #oczka w kostce
         c = kost
         mincx = c[0][0][0]
@@ -133,18 +126,18 @@ for fi,file in enumerate(filename):
         mincy = c[0][0][1]
         maxcy = c[0][0][1]
 
-        for i,k in enumerate(c):
-            if(c[i][0][0]<mincx):
-                mincx = c[i][0][0]
+        for ic,k in enumerate(c):
+            if(c[ic][0][0]<mincx):
+                mincx = c[ic][0][0]
 
-            if(c[i][0][0]>maxcx):
-                maxcx = c[i][0][0]
+            if(c[ic][0][0]>maxcx):
+                maxcx = c[ic][0][0]
             
-            if(c[i][0][1]<mincy):
-                mincy = c[i][0][1]
+            if(c[ic][0][1]<mincy):
+                mincy = c[ic][0][1]
             
-            if(c[i][0][1]>maxcy):
-                maxcy = c[i][0][1]
+            if(c[ic][0][1]>maxcy):
+                maxcy = c[ic][0][1]
         #print(mincx,maxcx,mincy,maxcy)
 
         for k, ocz in enumerate(oczka):
@@ -158,10 +151,42 @@ for fi,file in enumerate(filename):
                 #print(cX,cY)
                 if(cX>mincx and cX<maxcx and cY>mincy and cY<maxcy):
                     owk.append(k)
-                    #print("tak")
-        #print(owk)
-        wynik.append(owk)
+                    
+                    co = ocz.astype("float")
+                    co = ocz.astype("int")
+                    cv2.drawContours(image,[co],-1,(0,0,255),4)
+                    cv2.putText(image,shapec[k],(cX,cY),cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        (255,0,0),2)
+        if len(owk)>0:
+            M = cv2.moments(kost)
+            if M["m00"] != 0:  #w celu nie dzielenia przez 0
+                cX = int((M["m10"] / M["m00"]))
+                cY = int((M["m01"] / M["m00"]))
 
+                ck = kost.astype("float")
+                ck = kost.astype("int")
+                cv2.drawContours(image, [ck], -1, (0, 0, 255), 4)
+                cv2.putText(image, shapek[i], (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (255, 0, 0), 2)
+        wynik.append(owk)
+        #print("OK")
+
+#-------------------ZAPIS---------------------
+    it = 1
+    for i,w in enumerate(wynik):
+        if (len(w)!=0):
+            opis = "Kostka nr: "+str(i)+", liczba oczek: "+str(len(w))+", zawartosc: "+str(w)
+            org = (50,50+it*80)
+            it=it+1
+            font = cv2.FONT_HERSHEY_SIMPLEX 
+            fontScale = 2
+            color = (50, 180, 180) 
+            thickness = 2
+            cv2.putText(image,opis,org,font,fontScale,color,thickness)
+    #name = "./apolygs/polyg" + str(fi)+".jpg"
+    name = "aapoly.jpg" + str(fi)+".jpg"
+    cv2.imwrite(name,image)
+    #print("OK")
 
     for i,w in enumerate(wynik) :
         if (len(w)!=0):
