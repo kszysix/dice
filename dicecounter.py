@@ -2,6 +2,7 @@ import cv2
 from shapedetector import ShapeDetector
 import math
 import numpy as np
+import os
 
 filename = [ "d1.jpg","d2.jpg","d3.jpg","d4.jpg","d5.jpg",
             "d6.jpg","d7.jpg","d8.jpg","d9.jpg","d10.jpg",
@@ -14,11 +15,25 @@ filename = [ "d1.jpg","d2.jpg","d3.jpg","d4.jpg","d5.jpg",
 
 filename1 = ["d17.jpg"]
 
+path = "input"
+
+photos = []
+# r=root, d=directories, f = files
+for r, d, f in os.walk(path):
+    for file in f:
+        if '.jpg' or '.png' in file:
+            photos.append(file)
+print("Images found: ")
+for f in photos:
+    print(f)
+
+
 #--------------PRZYGOTOWANIE-PLIKU------------------
 
-for fi,file in enumerate(filename1):
+for fi,file in enumerate(photos):
 
-    image = cv2.imread(file)
+    #file = path + file
+    image = cv2.imread(os.path.join(path,file))
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) 
 
@@ -76,7 +91,7 @@ for fi,file in enumerate(filename1):
             if(shape == "Square"):
                 #print("kostka")
                 kostki.append(zwrot[1])
-                shapek.append("Square"+str(r))
+                shapek.append("Dice "+str(r))
                 r = r+1
                 
   
@@ -105,15 +120,13 @@ for fi,file in enumerate(filename1):
             if(shape == "circle"):
                 #print("oczka")
                 oczka.append(zwrot[1])
-                shapec.append("Circle"+str(p))
+                shapec.append("Dot "+str(p))
                 p = p+1
 
             if(shape == "niet"):
                 continue
 #------------LICZENIE----------------------
     wynik = []
-    print(len(kostki))
-    print(len(shapek))
 
     for i,kost in enumerate(kostki):
      
@@ -154,9 +167,9 @@ for fi,file in enumerate(filename1):
                     
                     co = ocz.astype("float")
                     co = ocz.astype("int")
-                    cv2.drawContours(image,[co],-1,(0,0,255),4)
-                    cv2.putText(image,shapec[k],(cX,cY),cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (255,0,0),2)
+                    cv2.drawContours(image,[co],-1,(80,240,20),4)
+                    cv2.putText(image,shapec[k],(cX,cY),cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (140,240,20),2)
         if len(owk)>0:
             M = cv2.moments(kost)
             if M["m00"] != 0:  #w celu nie dzielenia przez 0
@@ -167,7 +180,7 @@ for fi,file in enumerate(filename1):
                 ck = kost.astype("int")
                 cv2.drawContours(image, [ck], -1, (0, 0, 255), 4)
                 cv2.putText(image, shapek[i], (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 0, 0), 2)
+                1, (40, 50, 250), 2)
         wynik.append(owk)
         #print("OK")
 
@@ -175,7 +188,7 @@ for fi,file in enumerate(filename1):
     it = 1
     for i,w in enumerate(wynik):
         if (len(w)!=0):
-            opis = "Kostka nr: "+str(i)+", liczba oczek: "+str(len(w))+", zawartosc: "+str(w)
+            opis = "Dice number: "+str(i)+", dots: "+str(len(w))+", dots numbers: "+str(w)
             org = (50,50+it*80)
             it=it+1
             font = cv2.FONT_HERSHEY_SIMPLEX 
@@ -183,8 +196,8 @@ for fi,file in enumerate(filename1):
             color = (50, 180, 180) 
             thickness = 2
             cv2.putText(image,opis,org,font,fontScale,color,thickness)
-    #name = "./apolygs/polyg" + str(fi)+".jpg"
-    name = "aapoly.jpg" + str(fi)+".jpg"
+    name = "./output/dice" + str(fi)+".jpg"
+    #name = "aapoly.jpg" + str(fi)+".jpg"
     cv2.imwrite(name,image)
     #print("OK")
 
