@@ -47,7 +47,8 @@ for fi,file in enumerate(photos):
 
     #thresh = cv2.erode(thresh,(15,15),iterations=5)
     thresh = cv2.erode(thresh,(15,15),iterations=20)
-    #cv2.imwrite('thr.jpg',thresh)
+    #cv2.imwrite("thr"+str(fi)+".jpg",thresh)
+    #continue
     #tworzenie kernela do 'opening'
     ksize = 5
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (ksize,ksize))
@@ -76,7 +77,7 @@ for fi,file in enumerate(photos):
 
     for i,c in enumerate(cnts):
         #odrzucanie zbyt małych i zbyt dużych konturów
-        if((cv2.arcLength(c,True)<100 or cv2.arcLength(c,True)>4000) ):
+        if((cv2.arcLength(c,True)<500 or cv2.arcLength(c,True)>4000) ):
             continue
         
         #wyszukiwanie środka konturu
@@ -105,7 +106,7 @@ for fi,file in enumerate(photos):
     p = 0 
     for i,c in enumerate(krops):
         #odrzucanie zbyt małych i zbyt dużych konturów
-        if((cv2.arcLength(c,True)<100 or cv2.arcLength(c,True)>4000) ):
+        if((cv2.arcLength(c,True)<50 or cv2.arcLength(c,True)>4000) ):
             continue
         
         #wyszukiwanie środka konturu
@@ -134,27 +135,27 @@ for fi,file in enumerate(photos):
 
         owk = [] #oczka w kostce
         c = kost
-        mincx = c[0][0][0]
-        maxcx = c[0][0][0]
-        mincy = c[0][0][1]
-        maxcy = c[0][0][1]
+        # mincx = c[0][0][0]
+        # maxcx = c[0][0][0]
+        # mincy = c[0][0][1]
+        # maxcy = c[0][0][1]
 
-        for ic,k in enumerate(c):
-            if(c[ic][0][0]<mincx):
-                mincx = c[ic][0][0]
+        # for ic,k in enumerate(c):
+        #     if(c[ic][0][0]<mincx):
+        #         mincx = c[ic][0][0]
 
-            if(c[ic][0][0]>maxcx):
-                maxcx = c[ic][0][0]
+        #     if(c[ic][0][0]>maxcx):
+        #         maxcx = c[ic][0][0]
             
-            if(c[ic][0][1]<mincy):
-                mincy = c[ic][0][1]
+        #     if(c[ic][0][1]<mincy):
+        #         mincy = c[ic][0][1]
             
-            if(c[ic][0][1]>maxcy):
-                maxcy = c[ic][0][1]
+        #     if(c[ic][0][1]>maxcy):
+        #         maxcy = c[ic][0][1]
         #print(mincx,maxcx,mincy,maxcy)
 
         for k, ocz in enumerate(oczka):
-            if(cv2.arcLength(c,True)/10>cv2.arcLength(ocz,True) ):
+            if(cv2.arcLength(c,True)/14>cv2.arcLength(ocz,True) or cv2.arcLength(c,True)/4<cv2.arcLength(ocz,True) ):
                 continue
 
             M = cv2.moments(ocz)
@@ -162,7 +163,9 @@ for fi,file in enumerate(photos):
                 cX = int((M["m10"] / M["m00"]))
                 cY = int((M["m01"] / M["m00"]))
                 #print(cX,cY)
-                if(cX>mincx and cX<maxcx and cY>mincy and cY<maxcy):
+                #if(cX>mincx and cX<maxcx and cY>mincy and cY<maxcy):
+                dist = cv2.pointPolygonTest(kost,(cX,cY),False)
+                if(dist != -1):
                     owk.append(k)
                     
                     co = ocz.astype("float")
